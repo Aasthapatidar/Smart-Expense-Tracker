@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}View Expenses - Smart Expense Tracker{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>All Expenses</h1>
+        <p class="subtitle">View and manage all your recorded expenses</p>
+        <div class="header-stats">
+            <span class="stat-badge">Total: {{ total }} expenses</span>
+            <a href="{{ url_for('add_expense') }}" class="btn-primary">Add New Expense</a>
+        </div>
+    </div>
+</section>
+
+<section class="expenses-section">
+    <div class="container">
+        {% if expenses %}
+            <div class="table-container">
+                <table class="expenses-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr>
+                                <td class="expense-date">{{ expense.date|date_format }}</td>
+                                <td class="expense-title">
+                                    <div>
+                                        <strong>{{ expense.title }}</strong>
+                                    </div>
+                                </td>
+                                <td class="expense-category">
+                                    <span class="category-pill">{{ expense.category }}</span>
+                                </td>
+                                <td class="expense-amount">{{ expense.amount|currency }}</td>
+                                <td class="expense-actions">
+                                    <a href="{{ url_for('delete_expense', expense_id=expense.id) }}"
+                                       class="btn-delete"
+                                       onclick="return confirm('Are you sure you want to delete this expense?')">
+                                        Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if total_pages > 1 %}
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Page {{ page }} of {{ total_pages }} • Showing {{ (page-1)*10 + 1 }} to {{ [page*10, total]|min }} of {{ total }} expenses
+                    </div>
+
+                    <nav class="pagination" aria-label="Expense pagination">
+                        {% if page > 1 %}
+                            <a href="{{ url_for('view_expenses', page=page-1) }}" class="pagination-btn">
+                                ← Previous
+                            </a>
+                        {% endif %}
+
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                                <span class="pagination-current">{{ p }}</span>
+                            {% elif p == 1 or p == total_pages or (p >= page-2 and p <= page+2) %}
+                                <a href="{{ url_for('view_expenses', page=p) }}" class="pagination-btn">{{ p }}</a>
+                            {% elif p == page-3 or p == page+3 %}
+                                <span class="pagination-ellipsis">...</span>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page < total_pages %}
+                            <a href="{{ url_for('view_expenses', page=page+1) }}" class="pagination-btn">
+                                Next →
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <div class="empty-state">
+                <h3>No Expenses Found</h3>
+                <p>You haven't added any expenses yet. Start tracking your spending by adding your first expense.</p>
+                <a href="{{ url_for('add_expense') }}" class="btn-primary">Add Your First Expense</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if expenses %}
+    <section class="summary-cards">
+        <div class="container">
+            <h2>Expense Summary</h2>
+            <div class="cards-grid">
+                <div class="summary-card">
+                    <div class="summary-content">
+                        <h3>Total Spent</h3>
+                        <p class="summary-value">
+                            {% set total_amount = expenses|sum(attribute='amount') %}
+                            {{ total_amount|currency }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-content">
+                        <h3>Average Expense</h3>
+                        <p class="summary-value">
+                            {% set avg_amount = expenses|map(attribute='amount')|list|sum / expenses|length %}
+                            {{ avg_amount|currency }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-content">
+                        <h3>Highest Expense</h3>
+                        <p class="summary-value">
+                            {% set max_amount = expenses|map(attribute='amount')|max %}
+                            {{ max_amount|currency }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-content">
+                        <h3>Date Range</h3>
+                        <p class="summary-value">
+                            {% if expenses %}
+                                {{ expenses[-1].date|date_format }} to {{ expenses[0].date|date_format }}
+                            {% else %}
+                                No data
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableRows = document.querySelectorAll('.expenses-table tbody tr');
+
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+
+            row.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-delete')) {
+                    return;
+                }
+
+                tableRows.forEach(r => r.style.outline = 'none');
+                this.style.outline = '2px solid #4CAF50';
+            });
+        });
+
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '0.5';
+                row.style.transform = 'scale(0.98)';
+            });
+        });
+    });
+</script>
+{% endblock %}

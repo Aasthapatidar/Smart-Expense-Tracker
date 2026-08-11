@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Summary - Smart Expense Tracker{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Monthly Spending Summary</h1>
+        <p class="subtitle">Analyze your spending patterns and track your financial goals</p>
+    </div>
+</section>
+
+<section class="summary-overview">
+    <div class="container">
+        <div class="overview-grid">
+            <div class="overview-card">
+                <div class="overview-content">
+                    <h3>Total Months</h3>
+                    <p class="overview-value">{{ monthly_totals|length }}</p>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-content">
+                    <h3>Total Spent</h3>
+                    <p class="overview-value">{{ monthly_totals.values()|sum|currency }}</p>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-content">
+                    <h3>Avg per Month</h3>
+                    <p class="overview-value">
+                        {% if monthly_totals|length > 0 %}
+                            {{ (monthly_totals.values()|sum / monthly_totals|length)|currency }}
+                        {% else %}
+                            ₹0.00
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-content">
+                    <h3>Highest Month</h3>
+                    <p class="overview-value">
+                        {% if monthly_totals|length > 0 %}
+                            {{ monthly_totals.values()|max|currency }}
+                        {% else %}
+                            ₹0.00
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="chart-section">
+    <div class="container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2>Monthly Spending Trend</h2>
+                <div class="chart-actions">
+                    <button class="btn-secondary" onclick="downloadChart()">
+                        Download Chart
+                    </button>
+                    <button class="btn-secondary" onclick="printChart()">
+                        Print Chart
+                    </button>
+                </div>
+            </div>
+
+            <div class="chart-container" style="display: flex; justify-content: center; align-items: center; width: 100%; overflow: hidden;">
+                {% if chart_url %}
+                    <img src="data:image/png;base64,{{ chart_url }}" alt="Monthly Spending Chart" id="spendingChart"
+                         style="max-width: 700px; width: 100%; height: auto; display: block; margin: 0 auto;">
+                {% else %}
+                    <div class="no-data-chart">
+                        <h3>No Data Available</h3>
+                        <p>Add some expenses to see your spending trends here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="breakdown-section">
+    <div class="container">
+        <h2>Detailed Breakdown by Month</h2>
+
+        {% if monthly_data %}
+            {% set current_month = '' %}
+            {% for record in monthly_data %}
+                {% if record.month != current_month %}
+                    {% if current_month != '' %}
+                        </div>
+                    {% endif %}
+                    {% set current_month = record.month %}
+                    <div class="month-block">
+                        <div class="month-header">
+                            <h3>{{ record.month }}</h3>
+                            <span class="month-total">
+                                Total: {{ monthly_totals[record.month]|currency }}
+                            </span>
+                        </div>
+                {% endif %}
+
+                <div class="category-row">
+                    <div class="category-info">
+                        <span class="category-label">{{ record.category }}</span>
+                    </div>
+                    <div class="category-bar">
+                        <div class="bar-fill" style="width: {{ (record.total_amount / monthly_totals[record.month] * 100)|round(1) }}%"></div>
+                    </div>
+                    <div class="category-amount">{{ record.total_amount|currency }}</div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No Spending Data</h3>
+                <p>Add some expenses to see your monthly breakdown here.</p>
+                <a href="{{ url_for('add_expense') }}" class="btn-primary">Add Expense</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if monthly_data %}
+    <section class="category-summary">
+        <div class="container">
+            <h2>Category Summary</h2>
+            <div class="category-summary-grid">
+                {% set category_totals = {} %}
+                {% for record in monthly_data %}
+                    {% if record.category not in category_totals %}
+                        {% set _ = category_totals.update({record.category: record.total_amount}) %}
+                    {% else %}
+                        {% set _ = category_totals.update({record.category: category_totals[record.category] + record.total_amount}) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% for category, total in category_totals.items() %}
+                    <div class="category-summary-card">
+                        <div class="category-summary-content">
+                            <h4>{{ category }}</h4>
+                            <p class="category-summary-amount">{{ total|currency }}</p>
+                            <div class="category-summary-bar">
+                                <div class="summary-bar-fill"
+                                     style="width: {{ (total / category_totals.values()|sum * 100)|round(1) }}%">
+                                </div>
+                            </div>
+                            <p class="category-summary-percentage">
+                                {{ (total / category_totals.values()|sum * 100)|round(1) }}% of total spending
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function downloadChart() {
+        const chartImg = document.getElementById('spendingChart');
+        if (chartImg) {
+            const link = document.createElement('a');
+            link.href = chartImg.src;
+            link.download = 'monthly_spending_chart.png';
+            link.click();
+        } else {
+            alert('No chart available to download.');
+        }
+    }
+
+    function printChart() {
+        const chartImg = document.getElementById('spendingChart');
+        if (chartImg) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Monthly Spending Chart</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            .header { text-align: center; margin-bottom: 20px; }
+                            .chart { text-align: center; }
+                            img { max-width: 100%; height: auto; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Monthly Spending Chart</h1>
+                            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div class="chart">
+                            <img src="${chartImg.src}" alt="Monthly Spending Chart">
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        } else {
+            alert('No chart available to print.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryRows = document.querySelectorAll('.category-row');
+        categoryRows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+                this.style.transform = 'translateX(5px)';
+            });
+
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        const summaryCards = document.querySelectorAll('.category-summary-card');
+        summaryCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+    });
+</script>
+{% endblock %}

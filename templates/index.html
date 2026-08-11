@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Expense Tracker{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div class="container">
+        <h1>Welcome to Your Expense Dashboard</h1>
+        <p class="subtitle">Track your spending and manage your budget effectively</p>
+    </div>
+</section>
+
+<section class="metrics-section">
+    <div class="container">
+        <div class="metrics-grid">
+            <div class="metric-card total-spent">
+                <div class="metric-info">
+                    <h3>Total Spent</h3>
+                    <p class="metric-value">{{ total_spent|currency }}</p>
+                </div>
+            </div>
+
+            <div class="metric-card expense-count">
+                <div class="metric-info">
+                    <h3>Total Expenses</h3>
+                    <p class="metric-value">{{ stats.count }}</p>
+                </div>
+            </div>
+
+            <div class="metric-card average-spend">
+                <div class="metric-info">
+                    <h3>Average Spend</h3>
+                    <p class="metric-value">{{ stats.average|currency }}</p>
+                </div>
+            </div>
+
+            <div class="metric-card max-spend">
+                <div class="metric-info">
+                    <h3>Highest Expense</h3>
+                    <p class="metric-value">{{ stats.max|currency }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="quick-actions">
+    <div class="container">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+            <a href="{{ url_for('add_expense') }}" class="action-btn primary">
+                Add New Expense
+            </a>
+            <a href="{{ url_for('view_expenses') }}" class="action-btn secondary">
+                View All Expenses
+            </a>
+            <a href="{{ url_for('monthly_summary') }}" class="action-btn tertiary">
+                View Summary
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="recent-expenses">
+    <div class="container">
+        <h2>Recent Expenses</h2>
+        {% if recent_expenses %}
+            <div class="expenses-grid">
+                {% for expense in recent_expenses %}
+                    <div class="expense-card">
+                        <div class="expense-header">
+                            <h4>{{ expense.title }}</h4>
+                            <span class="expense-category">{{ expense.category }}</span>
+                        </div>
+                        <div class="expense-details">
+                            <p class="expense-amount">{{ expense.amount|currency }}</p>
+                            <p class="expense-date">{{ expense.date|date_format }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="view-all-link">
+                <a href="{{ url_for('view_expenses') }}">View All Expenses →</a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No Expenses Yet</h3>
+                <p>Start tracking your expenses by adding your first expense.</p>
+                <a href="{{ url_for('add_expense') }}" class="btn-primary">Add Your First Expense</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="quick-categories">
+    <div class="container">
+        <h2>Add Expense by Category</h2>
+        <div class="category-grid">
+            {% for category in categories %}
+                <a href="{{ url_for('add_expense') }}?category={{ category }}" class="category-card">
+                    <h4>{{ category }}</h4>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

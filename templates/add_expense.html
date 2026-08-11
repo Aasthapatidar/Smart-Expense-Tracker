@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Add Expense - Smart Expense Tracker{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Add New Expense</h1>
+        <p class="subtitle">Record your expenses to track your spending effectively</p>
+    </div>
+</section>
+
+<section class="form-section">
+    <div class="container">
+        <div class="form-card">
+            <form method="POST" action="{{ url_for('add_expense') }}" id="expenseForm">
+                <div class="form-group">
+                    <label for="title">Expense Title <span class="required">*</span></label>
+                    <input type="text" id="title" name="title" placeholder="Enter expense description"
+                           value="{{ request.form.title or '' }}" required>
+                    <span class="form-help">e.g., Grocery shopping, Movie ticket, Electricity bill</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount">Amount (₹) <span class="required">*</span></label>
+                        <input type="number" id="amount" name="amount" step="0.01" min="0"
+                               placeholder="0.00" value="{{ request.form.amount or '' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <select id="category" name="category" required>
+                            <option value="">Select a category</option>
+                            {% for category in categories %}
+                                <option value="{{ category }}"
+                                    {% if request.form.category == category %}selected{% endif %}>
+                                    {{ category }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date <span class="required">*</span></label>
+                    <input type="date" id="date" name="date"
+                           value="{{ request.form.date or '' }}" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Save Expense</button>
+                    <a href="{{ url_for('index') }}" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="quick-add">
+            <h3>Quick Add Common Expenses</h3>
+            <div class="quick-add-grid">
+                <button class="quick-add-btn" onclick="fillForm('Coffee', 50, 'Food')">Coffee - ₹50</button>
+                <button class="quick-add-btn" onclick="fillForm('Bus Fare', 20, 'Travel')">Bus Fare - ₹20</button>
+                <button class="quick-add-btn" onclick="fillForm('Lunch', 150, 'Food')">Lunch - ₹150</button>
+                <button class="quick-add-btn" onclick="fillForm('Petrol', 500, 'Travel')">Petrol - ₹500</button>
+                <button class="quick-add-btn" onclick="fillForm('Groceries', 1000, 'Food')">Groceries - ₹1000</button>
+                <button class="quick-add-btn" onclick="fillForm('Mobile Recharge', 300, 'Bills')">Mobile Recharge - ₹300</button>
+            </div>
+        </div>
+
+        <div class="tips-section">
+            <h3>Tips for Better Expense Tracking</h3>
+            <ul class="tips-list">
+                <li>Enter expenses as soon as possible to avoid forgetting</li>
+                <li>Use descriptive titles to remember what each expense was for</li>
+                <li>Always select the correct date</li>
+                <li>Round amounts to the nearest rupee for simplicity</li>
+                <li>Review your expenses regularly to identify spending patterns</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('date');
+        if (!dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        window.fillForm = function(title, amount, category) {
+            document.getElementById('title').value = title;
+            document.getElementById('amount').value = amount;
+            document.getElementById('category').value = category;
+            document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (amount <= 0) {
+                e.preventDefault();
+                alert('Amount must be greater than zero');
+                return false;
+            }
+        });
+
+        document.getElementById('amount').addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value) && value > 0) {
+                this.style.borderColor = '#4CAF50';
+            } else if (this.value) {
+                this.style.borderColor = '#f44336';
+            } else {
+                this.style.borderColor = '#ddd';
+            }
+        });
+    });
+</script>
+{% endblock %}
