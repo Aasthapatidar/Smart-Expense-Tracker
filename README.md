@@ -1,88 +1,36 @@
-\# Smart Expense Tracker
-
-
+# Smart Expense Tracker
 
 A simple web application to track daily expenses, add new entries, and view spending summaries.
 
+## Features
+- Add new expenses
+- View list of all expenses
+- Monthly expense summary and analysis
+- Sample data for testing
 
+## Tech Stack
+- Backend: Python (Flask)
+- Database: SQLite
+- Frontend: HTML, CSS
 
-\## Features
+## Setup and Run
 
-\- Add new expenses
-
-\- View list of all expenses
-
-\- Monthly expense summary and analysis
-
-\- Sample data for testing
-
-
-
-\## Tech Stack
-
-\- Backend: Python (Flask)
-
-\- Database: SQLite
-
-\- Frontend: HTML, CSS
-
-
-
-\## Project Structure
-
-SmartExpenseTracker/
-
-\- app.py - Main application file
-
-\- database.py - Database related functions
-
-\- requirements.txt - Python dependencies
-
-\- static/style.css - Styling
-
-\- templates/base.html
-
-\- templates/index.html
-
-\- templates/add\_expense.html
-
-\- templates/view\_expenses.html
-
-\- templates/summary.html
-
-
-
-\## Setup and Run
-
-
-
-1\. Clone the repository
+1. Clone the repository
 
 git clone https://github.com/Aasthapatidar/Smart-Expense-Tracker.git
-
 cd Smart-Expense-Tracker
 
-
-
-2\. Install dependencies
+2. Install dependencies
 
 pip install -r requirements.txt
 
-
-
-3\. Run the application
+3. Run the application
 
 python app.py
 
-
-
-4\. Open in browser
+4. Open in browser
 
 http://localhost:5000
 
-
-
-\## Author
-
+## Author
 Aastha Patidar
-
